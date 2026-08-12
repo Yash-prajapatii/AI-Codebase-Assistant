@@ -1,32 +1,51 @@
 import { useState } from "react";
-import { FileCode, ChevronDown, ChevronRight } from "lucide-react";
+import { FileCode2, ChevronDown, ChevronRight } from "lucide-react";
+import clsx from "clsx";
 
 interface SourceCitationsProps {
   files: string[];
 }
 
 export function SourceCitations({ files }: SourceCitationsProps) {
-  const [open, setOpen] = useState(false);
+  // Open by default — source files are the most valuable part of the response.
+  // Users can collapse if they don't need them.
+  const [open, setOpen] = useState(true);
+
   if (files.length === 0) return null;
 
   return (
-    <div className="mt-3 border-t border-surface-border pt-2.5">
+    <div className="mt-3.5 pt-3 border-t border-surface-border/60">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-xs text-ink-tertiary hover:text-ink-secondary transition-colors"
+        aria-expanded={open}
+        className={clsx(
+          "flex items-center gap-2 w-full text-left",
+          "text-2xs font-medium text-ink-tertiary",
+          "hover:text-ink-secondary transition-colors duration-100",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/40 rounded"
+        )}
       >
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        <FileCode size={12} />
+        <FileCode2 size={11} className="flex-shrink-0" aria-hidden="true" />
         <span>
-          {files.length} referenced file{files.length !== 1 ? "s" : ""}
+          {files.length} source file{files.length !== 1 ? "s" : ""} referenced
+        </span>
+        <span className="ml-auto" aria-hidden="true">
+          {open ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
         </span>
       </button>
+
       {open && (
-        <ul className="mt-2 space-y-1 pl-1 animate-fade-in">
+        <ul
+          className="mt-2 space-y-1 animate-fade-in"
+          aria-label="Referenced source files"
+        >
           {files.map((file) => (
-            <li key={file} className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-accent-glow flex-shrink-0" />
-              <code className="text-xs font-mono text-accent-glow/80 truncate">
+            <li key={file} className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-1 h-1 rounded-full bg-accent/40 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <code className="text-2xs font-mono text-ink-secondary truncate" title={file}>
                 {file}
               </code>
             </li>
