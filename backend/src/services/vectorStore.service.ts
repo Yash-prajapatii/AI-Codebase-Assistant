@@ -19,7 +19,13 @@ function buildChromaClient(): ChromaClient {
   // When no port is specified in the URL, default to 443 for HTTPS and 80 for HTTP.
   const port = url.port ? Number(url.port) : ssl ? 443 : 80;
 
-  return new ChromaClient({ host, port, ssl });
+  return new ChromaClient({
+    host,
+    port,
+    ssl,
+    tenant: "default_tenant",
+    database: "default_database",
+  });
 }
 
 const chroma = buildChromaClient();
