@@ -10,6 +10,7 @@ import repoRoutes from "./routes/repo.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());

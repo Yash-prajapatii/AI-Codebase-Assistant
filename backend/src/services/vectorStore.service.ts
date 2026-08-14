@@ -3,10 +3,28 @@ import { DocumentChunk, RetrievedChunk, ChunkMetadata } from "../types/index.js"
 import { embedTexts, embedQuery } from "./embeddings.service.js";
 import { config } from "../config/index.js";
 
-const chroma = new ChromaClient({ path: config.CHROMA_URL });
+// ── ChromaClient construction ────────────────────────────────────────────────
+//
+// chromadb@3.x deprecated the { path } option. It now parses the URL internally
+// via new URL(path) and reconstructs it as `${protocol}://${host}:${port}`.
+// When the URL has no explicit port (e.g. Render's HTTPS URLs), url.port is ""
+// and Number("") is 0, producing "https://hostname:0" — causing connection failure.
+//
+// Fix: parse the URL ourselves and pass explicit host/port/ssl options.
+
+function buildChromaClient(): ChromaClient {
+  const url = new URL(config.CHROMA_URL);
+  const ssl  = url.protocol === "https:";
+  const host = url.hostname;
+  // When no port is specified in the URL, default to 443 for HTTPS and 80 for HTTP.
+  const port = url.port ? Number(url.port) : ssl ? 443 : 80;
+
+  return new ChromaClient({ host, port, ssl });
+}
+
+const chroma = buildChromaClient();
 
 function buildCollectionName(sessionId: string): string {
-  // ChromaDB collection names: 3–63 chars, alphanumeric + underscores/hyphens
   const safe = sessionId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50);
   return `${config.CHROMA_COLLECTION_PREFIX}${safe}`;
 }
@@ -14,9 +32,13 @@ function buildCollectionName(sessionId: string): string {
 async function getOrCreateCollection(
   collectionName: string
 ): Promise<Collection> {
+  // embeddingFunction: null tells chromadb 3.x we are supplying our own embeddings
+  // and suppresses the DefaultEmbeddingFunction warning that appears when the
+  // Chroma server returns { name: "default", type: "known" } in configuration_json.
   return chroma.getOrCreateCollection({
     name: collectionName,
     metadata: { "hnsw:space": "cosine" },
+    embeddingFunction: null,
   });
 }
 
@@ -60,7 +82,10 @@ export async function similaritySearch(
   collectionId: string,
   topK: number = config.RETRIEVER_TOP_K
 ): Promise<RetrievedChunk[]> {
-  const collection = await chroma.getCollection({ name: collectionId, embeddingFunction: undefined as any,});
+  const collection = await chroma.getCollection({
+    name: collectionId,
+    embeddingFunction: undefined,
+  });
   const queryEmbedding = await embedQuery(query);
 
   const results = await collection.query({
@@ -81,7 +106,7 @@ export async function similaritySearch(
     chunks.push({
       content: doc,
       metadata: meta as unknown as ChunkMetadata,
-      score: 1 - (distances[i] ?? 0), // cosine distance → similarity
+      score: 1 - (distances[i] ?? 0),
     });
   }
 
