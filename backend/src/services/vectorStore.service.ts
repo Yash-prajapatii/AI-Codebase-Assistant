@@ -3,51 +3,24 @@ import { DocumentChunk, RetrievedChunk, ChunkMetadata } from "../types/index.js"
 import { embedTexts, embedQuery } from "./embeddings.service.js";
 import { config } from "../config/index.js";
 
-// ── ChromaClient construction ────────────────────────────────────────────────
-//
-// chromadb@3.x deprecated the { path } option. It now parses the URL internally
-// via new URL(path) and reconstructs it as `${protocol}://${host}:${port}`.
-// When the URL has no explicit port (e.g. Render's HTTPS URLs), url.port is ""
-// and Number("") is 0, producing "https://hostname:0" — causing connection failure.
-//
-// Fix: parse the URL ourselves and pass explicit host/port/ssl options.
-
 function buildChromaClient(): ChromaClient {
   const url = new URL(config.CHROMA_URL);
-  const ssl  = url.protocol === "https:";
+  const ssl = url.protocol === "https:";
   const host = url.hostname;
+  const port = url.port ? Number(url.port) : ssl ? 443 : 8000;
 
-  // Do not pass an explicit port when it is the protocol default.
-  // The SDK always appends the port as `host:port` in its base URL.
-  // Render's ingress proxy returns 502 when the default port (443 for HTTPS,
-  // 80 for HTTP) is written explicitly in the Host header / URL.
-  // Omitting port lets the SDK fall back to its own default (8000 locally,
-  // irrelevant here because we override host), so we only pass it when the
-  // URL explicitly specifies a non-default port.
-  const explicitPort = url.port ? Number(url.port) : undefined;
-  const isDefaultPort =
-    (!explicitPort) ||
-    (ssl && explicitPort === 443) ||
-    (!ssl && explicitPort === 80);
-
-  const clientArgs: {
-    host: string;
-    ssl: boolean;
-    port?: number;
-    tenant: string;
-    database: string;
-  } = {
+  const chroma = new ChromaClient({
     host,
+    port,
     ssl,
     tenant: "default_tenant",
     database: "default_database",
-  };
+  });
 
-  if (!isDefaultPort && explicitPort) {
-    clientArgs.port = explicitPort;
-  }
+  const baseUrl = config.CHROMA_URL.replace(/\/$/, "");
+  (chroma as any).apiClient.setConfig({ baseUrl });
 
-  return new ChromaClient(clientArgs);
+  return chroma;
 }
 
 const chroma = buildChromaClient();
