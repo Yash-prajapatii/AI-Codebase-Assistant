@@ -16,16 +16,38 @@ function buildChromaClient(): ChromaClient {
   const url = new URL(config.CHROMA_URL);
   const ssl  = url.protocol === "https:";
   const host = url.hostname;
-  // When no port is specified in the URL, default to 443 for HTTPS and 80 for HTTP.
-  const port = url.port ? Number(url.port) : ssl ? 443 : 80;
 
-  return new ChromaClient({
+  // Do not pass an explicit port when it is the protocol default.
+  // The SDK always appends the port as `host:port` in its base URL.
+  // Render's ingress proxy returns 502 when the default port (443 for HTTPS,
+  // 80 for HTTP) is written explicitly in the Host header / URL.
+  // Omitting port lets the SDK fall back to its own default (8000 locally,
+  // irrelevant here because we override host), so we only pass it when the
+  // URL explicitly specifies a non-default port.
+  const explicitPort = url.port ? Number(url.port) : undefined;
+  const isDefaultPort =
+    (!explicitPort) ||
+    (ssl && explicitPort === 443) ||
+    (!ssl && explicitPort === 80);
+
+  const clientArgs: {
+    host: string;
+    ssl: boolean;
+    port?: number;
+    tenant: string;
+    database: string;
+  } = {
     host,
-    port,
     ssl,
     tenant: "default_tenant",
     database: "default_database",
-  });
+  };
+
+  if (!isDefaultPort && explicitPort) {
+    clientArgs.port = explicitPort;
+  }
+
+  return new ChromaClient(clientArgs);
 }
 
 const chroma = buildChromaClient();
