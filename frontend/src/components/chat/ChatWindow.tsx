@@ -37,9 +37,9 @@ const EXAMPLE_QUESTIONS = [
 ];
 
 export const EXAMPLE_REPOS = [
-  "https://github.com/expressjs/express",
-  "https://github.com/gothinkster/node-express-realworld-example-app",
-  "https://github.com/prisma/prisma",
+  "https://github.com/amannn/vite-react-starter",
+  "https://github.com/Yash-prajapatii/Neurotrack",
+  "https://github.com/TausifM/react-typescript-todo-app",
 ];
 
 // ─── Main component ────────────────────────────────────────────────────────────

@@ -10,8 +10,8 @@ const GITHUB_PATTERN = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/;
 // Pre-filled example URLs shown below the input.
 // Clicking one sets the input value — no side effects, no store writes.
 const QUICK_URLS = [
-  { label: "expressjs/express", url: "https://github.com/expressjs/express" },
-  { label: "gothinkster/realworld", url: "https://github.com/gothinkster/node-express-realworld-example-app" },
+  { label: "amannn/vite-react-starter", url: "https://github.com/amannn/vite-react-starter" },
+  { label: "Yash-prajapatii/Neurotrack", url: "https://github.com/Yash-prajapatii/Neurotrack" },
 ];
 
 interface RepoInputProps {
