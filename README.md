@@ -32,8 +32,8 @@ The system clones the repository, parses and chunks its source files, generates 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              React + TypeScript + Vite               │
-│  Repo Input  │  Chat Window  │  Route Map  │  Sidebar│
+│              React + TypeScript + Vite              │
+│  Repo Input  │  Chat Window  │  Route Map  │ Sidebar│
 └──────────────────────┬──────────────────────────────┘
                        │ REST + SSE
           ┌────────────▼────────────────┐
@@ -61,15 +61,15 @@ The system clones the repository, parses and chunks its source files, generates 
           └────────────┬────────────────┘
                        │
          ┌─────────────▼──────────────┐
-         │   ChromaDB  (v2 API)        │
-         │   cosine similarity index   │
-         │   768-dim embeddings        │
+         │   ChromaDB  (v2 API)       │
+         │   cosine similarity index  │
+         │   768-dim embeddings       │
          └────────────────────────────┘
                        │
          ┌─────────────▼──────────────┐
-         │   Google Gemini API         │
-         │   gemini-embedding-001      │
-         │   gemini-3.5-flash (chat)   │
+         │   Google Gemini API        │
+         │   gemini-embedding-001     │
+         │   gemini-3.5-flash (chat)  │
          └────────────────────────────┘
 ```
 
